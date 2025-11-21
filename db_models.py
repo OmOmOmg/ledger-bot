@@ -15,10 +15,8 @@ class DebtLedger(SQLModel, table=True):
     __tablename__ = "debt_ledger"
     __table_args__ = (
         UniqueConstraint("message_id"),
-        CheckConstraint("creditor <> debtor"),
-        Index("ix_debt_ledger_pair", "creditor", "debtor"),
+        CheckConstraint("creditor <> debtor")
     )
-
     id: int | None = Field(default=None, primary_key=True)
     creditor: str = Field(foreign_key="tg_user.username", nullable=False)
     debtor: str = Field(foreign_key="tg_user.username", nullable=False)
