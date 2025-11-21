@@ -3,7 +3,7 @@
 # from contextlib import contextmanager
 
 from sqlmodel import SQLModel, Field
-from sqlalchemy import CheckConstraint, UniqueConstraint, Index
+from sqlalchemy import CheckConstraint, UniqueConstraint
 
 # tg_user: canonical participant list (username PK)
 class TgUser(SQLModel, table=True):
