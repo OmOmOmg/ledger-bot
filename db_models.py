@@ -1,9 +1,9 @@
-from __future__ import annotations
-import os
-from contextlib import contextmanager
+# from __future__ import annotations
+# import os
+# from contextlib import contextmanager
 
-from sqlmodel import SQLModel, Field, Session, create_engine
-from sqlalchemy import Column, BigInteger, CheckConstraint, UniqueConstraint, Index
+from sqlmodel import SQLModel, Field
+from sqlalchemy import CheckConstraint, UniqueConstraint, Index
 
 # tg_user: canonical participant list (username PK)
 class TgUser(SQLModel, table=True):
