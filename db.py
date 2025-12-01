@@ -14,9 +14,9 @@ def get_session():
 #DB Models
 
 # tg_user: canonical participant list (username PK)
-class TgUser(SQLModel, table=True):
-    __tablename__ = "tg_user"
-    username: str = Field(primary_key=True)
+# class TgUser(SQLModel, table=True):
+#     __tablename__ = "tg_user"
+#     username: str = Field(primary_key=True)
 
 # pool_entry: append-only journal of "paid"/"share" events
 class PoolEntry(SQLModel, table=True):
@@ -26,9 +26,18 @@ class PoolEntry(SQLModel, table=True):
     kind: str = Field(nullable=False) # "paid" or "share"
     amount_din: int = Field(nullable=False)
 
-def record_debt(bot, message, creditor: str, debtor: str, amount: int, msg_id: int):
-    with db.get_session() as session:
-        # ensure users exist
-        for u in {creditor, debtor}:
-            if session.get(db.TgUser, u) is None:
-                session.add(db.TgUser(username=u))
+def record_debt(bot, message, id: int, username: str, kind: str, amount_din: int, ):
+    with db.get_session() as session: # ensure users exist
+        if session.get(db.TgUser, username) is None:
+            session.add(db.TgUser(username))
+
+
+    entry = PoolEntry(
+        id=id,
+        username=username,
+        kind=kind,
+        amount_din=amount_din
+    )
+
+    session.add(entry)
+    session.commit()

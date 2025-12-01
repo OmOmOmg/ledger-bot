@@ -44,7 +44,7 @@ def handle_text(message):
             return
 
         creditor = nickname[1:]               # remove '@'
-        debtor = message.from_user.username   # sender of message
+        username = message.from_user.username   # sender of message
         amount = int(amount_str)
         msg_id = message.message_id
 
@@ -52,15 +52,15 @@ def handle_text(message):
             bot.reply_to(message, "You cannot owe yourself.")
             return
 
-    except Exception:
-        bot.reply_to(message, "Invalid format. Use: @user amount")
+        ok = db.record_debt(bot, message, username, debtor, amount, msg_id)
 
-    ok = db.record_debt(bot, message, creditor, debtor, amount, msg_id)
+        if ok:
+            bot.reply_to(message, f"Recorded: @{debtor} → @{creditor} : {amount} RSD")
+        else:
+            bot.reply_to(message, "Not recorded (maybe duplicate message or error).")
+        except Exception:
+            bot.reply_to(message, "Invalid format. Use: @user amount")
 
-    if ok:
-        bot.reply_to(message, f"Recorded: @{debtor} → @{creditor} : {amount} RSD")
-    else:
-        bot.reply_to(message, "Not recorded (maybe duplicate message or error).")
 
 
 if __name__ == "__main__":
