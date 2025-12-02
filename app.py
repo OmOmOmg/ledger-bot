@@ -31,35 +31,27 @@ def home():
 #process "/start" command
 @bot.message_handler(commands=['start'])
 def start(m):
-    bot.reply_to (m, "Enter debt in format: <@telegram-nickname of whom you own> <debt in RSD>. E.g. @homer 500 \n")
+    bot.reply_to (m, "Input in format <paid | share> <amount> e.g. paid 1500 \n")
 
 #receive imput from user
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     # Expect format: "@username amount"
     try:
-        nickname, amount_str = message.text.split()
-        if not nickname.startswith("@"):
-            bot.reply_to(message, "Format: @user amount")
-            return
+        kind, amount_str = message.text.split()
 
-        creditor = nickname[1:]               # remove '@'
         username = message.from_user.username   # sender of message
+        kind = kind.lower()
         amount = int(amount_str)
-        msg_id = message.message_id
 
-        if creditor == debtor:
-            bot.reply_to(message, "You cannot owe yourself.")
-            return
-
-        ok = db.record_debt(bot, message, username, debtor, amount, msg_id)
+        ok = db.record_debt(bot, message, username, kind, amount)
 
         if ok:
-            bot.reply_to(message, f"Recorded: @{debtor} → @{creditor} : {amount} RSD")
+            bot.reply_to(message, f"Recorded. \n @{username} → Balance: {net} RSD")
         else:
-            bot.reply_to(message, "Not recorded (maybe duplicate message or error).")
-        except Exception:
-            bot.reply_to(message, "Invalid format. Use: @user amount")
+            bot.reply_to(message, "Not recorded (error).")
+    except Exception:
+        bot.reply_to(message, "Invalid format. Use: @user amount")
 
 
 

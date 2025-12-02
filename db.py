@@ -11,14 +11,7 @@ def init_db():
 def get_session():
     return Session(engine)
 
-#DB Models
-
-# tg_user: canonical participant list (username PK)
-# class TgUser(SQLModel, table=True):
-#     __tablename__ = "tg_user"
-#     username: str = Field(primary_key=True)
-
-# pool_entry: append-only journal of "paid"/"share" events
+#DB Model
 class PoolEntry(SQLModel, table=True):
     __tablename__ = "pool_entry"
     id: int | None = Field(default=None, primary_key=True)
@@ -28,16 +21,13 @@ class PoolEntry(SQLModel, table=True):
 
 def record_debt(bot, message, id: int, username: str, kind: str, amount_din: int, ):
     with db.get_session() as session: # ensure users exist
-        if session.get(db.TgUser, username) is None:
-            session.add(db.TgUser(username))
 
+        entry = PoolEntry(
+            id=id,
+            username=username,
+            kind=kind,
+            amount_din=amount_din
+        )
 
-    entry = PoolEntry(
-        id=id,
-        username=username,
-        kind=kind,
-        amount_din=amount_din
-    )
-
-    session.add(entry)
-    session.commit()
+        session.add(entry)
+        session.commit()
