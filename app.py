@@ -54,6 +54,11 @@ def handle_text(message):
         bot.reply_to(message, "Invalid format. Use: @user amount")
 
 
+@bot.message_handler(commands=["/me"])
+
+
+@bot.message_handler(commands=["/all"])
+
 
 if __name__ == "__main__":
     app.run(debug=True)

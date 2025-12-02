@@ -21,7 +21,6 @@ class PoolEntry(SQLModel, table=True):
 
 def record_debt(bot, message, id: int, username: str, kind: str, amount_din: int, ):
     with db.get_session() as session: # ensure users exist
-
         entry = PoolEntry(
             id=id,
             username=username,
