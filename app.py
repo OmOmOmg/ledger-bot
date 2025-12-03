@@ -44,9 +44,10 @@ def handle_text(message):
         kind = kind.lower()
         amount = int(amount_str)
 
-        ok = db.record_debt(bot, message, username, kind, amount)
+        ok = db.record_debt(username, kind, amount)
 
         if ok:
+            net = db.my_balance(username)
             bot.reply_to(message, f"Recorded. \n @{username} → Balance: {net} RSD")
         else:
             bot.reply_to(message, "Not recorded (error).")

@@ -14,7 +14,6 @@ def get_session():
 class PoolEntry(SQLModel, table=True):
     __tablename__ = "pool_entry"
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(foreign_key="tg_user.username", nullable=False)
     kind: str = Field(nullable=False) # "paid" or "share"
     amount_din: int = Field(nullable=False)
 
@@ -35,8 +34,6 @@ def record_debt(username: str, kind: str, amount_din: int) -> bool:
     except Exception:
 
         return False
-
-
 
 def my_balance(username: str):
     with get_session() as session:
