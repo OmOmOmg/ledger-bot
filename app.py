@@ -7,7 +7,7 @@ import db
 
 import telebot
 
-
+db.init_db()
 bot = telebot.TeleBot(os.environ["BOT_TOKEN"], threaded=False)
 
 app = Flask('__name__')
