@@ -1,6 +1,6 @@
-from sqlmodel import SQLModel, Field, create_engine, Session
 import os
 import db
+from sqlmodel import SQLModel, create_engine, Session, Field, select
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
@@ -30,3 +30,18 @@ def record_debt(bot, message, id: int, username: str, kind: str, amount_din: int
 
         session.add(entry)
         session.commit()
+
+def my_balance(username: str):
+    with db.get_session() as session:
+        entries = session.exec(
+            select(db.PoolEntry).where(db.PoolEntry.username == username)
+        ).all()
+
+    net = 0
+    for e in entries:
+        if e.kind == "paid":
+            net += e.amount_din
+        elif e.kind == "share":
+            net -= e.amount_din
+    return net
+

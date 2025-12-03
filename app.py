@@ -51,13 +51,21 @@ def handle_text(message):
         else:
             bot.reply_to(message, "Not recorded (error).")
     except Exception:
-        bot.reply_to(message, "Invalid format. Use: @user amount")
+        bot.reply_to(message, "Invalid format. Use: <paid | share> <amount>")
 
 
-@bot.message_handler(commands=["/me"])
+@bot.message_handler(commands=["me"])
+def me_handler(message):
+    username = message.from_user.username
+    net = db.my_balance(username)
+
+    bot.reply_to(
+        message,
+        f"@{username} → Your balance: {net} RSD"
+    )
 
 
-@bot.message_handler(commands=["/all"])
+# @bot.message_handler(commands=["/all"])
 
 
 if __name__ == "__main__":
