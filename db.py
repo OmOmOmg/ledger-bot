@@ -14,6 +14,7 @@ def get_session():
 class PoolEntry(SQLModel, table=True):
     __tablename__ = "pool_entry"
     id: int | None = Field(default=None, primary_key=True)
+    username: str = Field(nullable=False)
     kind: str = Field(nullable=False) # "paid" or "share"
     amount_din: int = Field(nullable=False)
 
@@ -48,4 +49,9 @@ def my_balance(username: str):
         elif e.kind == "share":
             net -= e.amount_din
     return net
+
+def all_usernames() -> list[str]:
+    with get_session() as session:
+        rows = session.exec(select(PoolEntry.username).distinct()).all()
+    return [r for r in rows]
 

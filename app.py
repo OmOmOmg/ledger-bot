@@ -65,9 +65,17 @@ def me_handler(message):
         f"@{username} → Your balance: {net} RSD"
     )
 
+@bot.message_handler(commands=["all"])
+def all_handler(message):
+    
+    lines = []
+    for user in db.all_usernames():
+        net = db.my_balance(username=user)
+        sign = "+" if net > 0 else ""
+        lines.append(f"@{user}: {sign}{net} RSD")
 
-# @bot.message_handler(commands=["/all"])
-
+    reply_text = "📊 *Group balance:*\n" + "\n".join(lines)
+    bot.reply_to(message, reply_text, parse_mode="Markdown")
 
 if __name__ == "__main__":
     app.run(debug=True)
