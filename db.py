@@ -2,7 +2,12 @@ import os
 from sqlmodel import SQLModel, create_engine, Session, Field, select
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_pre_ping=True          # verify & reconnect before use
+)
+
 
 def init_db():
     SQLModel.metadata.create_all(engine)
