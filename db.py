@@ -32,9 +32,10 @@ def record_debt(username: str, kind: str, amount_din: int) -> bool:
 
         return True
 
-    except Exception:
-
+    except Exception as e:
+        print("DB ERROR:", e)
         return False
+
 
 def my_balance(username: str):
     with get_session() as session:
