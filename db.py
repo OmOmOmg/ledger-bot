@@ -22,6 +22,7 @@ class PoolEntry(SQLModel, table=True):
 def record_debt(username: str, kind: str, amount_din: int) -> bool:
     try:
         with get_session() as session:
+            session.exec(select(1))
             entry = PoolEntry(
                 username=username,
                 kind=kind,

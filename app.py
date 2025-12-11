@@ -11,7 +11,7 @@ db.init_db()
 bot = telebot.TeleBot(os.getenv("BOT_TOKEN"), threaded=False)
 
 app = Flask('__name__')
-sslify = SSLify(app)
+# sslify = SSLify(app)
 
 @app.route('/', methods=['POST','GET'])
 def home():
