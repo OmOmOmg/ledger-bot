@@ -8,7 +8,7 @@ import db
 import telebot
 
 db.init_db()
-bot = telebot.TeleBot(os.environ["BOT_TOKEN"], threaded=False)
+bot = telebot.TeleBot(os.getenv("BOT_TOKEN"), threaded=False)
 
 app = Flask('__name__')
 sslify = SSLify(app)
@@ -33,6 +33,32 @@ def home():
 def start(m):
     bot.reply_to (m, "Input in format <paid | share> <amount> e.g. paid 1500 \n")
 
+
+@bot.message_handler(commands=["me"])
+def me_handler(message):
+    username = message.from_user.username
+    net = db.my_balance(username)
+
+    bot.reply_to(
+        message,
+        f"@{username} → Your balance: {net} RSD"
+    )
+
+@bot.message_handler(commands=["all"])
+def all_handler(message):
+
+    lines = []
+    for user in db.all_usernames():
+        net = db.my_balance(username=user)
+        sign = "+" if net > 0 else ""
+        lines.append(f"@{user}: {sign}{net} RSD")
+
+    reply_text = "📊 *Group balance:*\n" + "\n".join(lines)
+    bot.reply_to(message, reply_text, parse_mode="Markdown")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 #receive imput from user
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
@@ -54,28 +80,3 @@ def handle_text(message):
     except Exception:
         bot.reply_to(message, "Invalid format. Use: <paid | share> <amount>")
 
-
-@bot.message_handler(commands=["me"])
-def me_handler(message):
-    username = message.from_user.username
-    net = db.my_balance(username)
-
-    bot.reply_to(
-        message,
-        f"@{username} → Your balance: {net} RSD"
-    )
-
-@bot.message_handler(commands=["all"])
-def all_handler(message):
-    
-    lines = []
-    for user in db.all_usernames():
-        net = db.my_balance(username=user)
-        sign = "+" if net > 0 else ""
-        lines.append(f"@{user}: {sign}{net} RSD")
-
-    reply_text = "📊 *Group balance:*\n" + "\n".join(lines)
-    bot.reply_to(message, reply_text, parse_mode="Markdown")
-
-if __name__ == "__main__":
-    app.run(debug=True)
