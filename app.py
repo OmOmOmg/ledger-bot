@@ -53,8 +53,8 @@ def all_handler(message):
         sign = "+" if net > 0 else ""
         lines.append(f"@{user}: {sign}{net} RSD")
 
-    reply_text = "📊 *Group balance:*\n" + "\n".join(lines)
-    bot.reply_to(message, reply_text, parse_mode="Markdown")
+    reply_text = "<b>📊 *Group balance:</b>*\n" + "\n".join(lines)
+    bot.reply_to(message, reply_text, parse_mode="HTML")
 
 if __name__ == "__main__":
     app.run(debug=True)
