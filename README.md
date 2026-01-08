@@ -9,3 +9,6 @@ NEXT:
 
 NEXT:
 - bound to telegram id, when nickname is not set
+
+NEXT
+- add scheduled check if overall balance != 0
