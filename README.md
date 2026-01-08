@@ -5,5 +5,7 @@ x change ux to /paid /share command
 x remove asterix signs from group balance
 
 NEXT:
+- deprecate paid command
 
-- depricate paid command
+NEXT:
+- bound to telegram id, when nickname is not set
