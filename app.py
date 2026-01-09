@@ -36,7 +36,7 @@ def home():
 
 @bot.message_handler(commands=["me"])
 def me_handler(message):
-    username = message.from_user.username
+    username = message.from_user.username or message.from_user.first_name
     net = db.my_balance(username)
 
     bot.reply_to(
@@ -55,7 +55,7 @@ def all_handler(message):
     reply_text = "<b>📊 Group balance:</b>\n" + "\n".join(lines)
     bot.reply_to(message, reply_text, parse_mode="HTML")
 
-#receive imput from user
+#receive input from user
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     if message.chat.type == "private":
@@ -68,10 +68,11 @@ def handle_text(message):
         return
 
     try:
-        kind, amount_str = message.text[1:].split()
+        kind, amount_str, creditor = message.text[1:].split()
 
-        username = message.from_user.username   # sender of message
+        debtor = message.from_user.username or message.from_user.first_name   # sender of a message
         kind = kind.lower()
+        creditor = creditor.lstrip("@")
 
         if kind not in ("paid", "share"):
             bot.reply_to(message, "Unknown command. Use /paid or /share.")
@@ -79,15 +80,20 @@ def handle_text(message):
 
         amount = int(amount_str)
 
-        ok = db.record_debt(username, kind, amount)
+        self = db.record_debt(debtor, kind, amount)
 
-        if ok:
-            net = db.my_balance(username)
-            bot.reply_to(message, f"Recorded. \n @{username} → Balance: {net} RSD")
+        if kind == "paid":
+            other = db.record_debt(creditor, "share", amount)
+        if kind == "share":
+            other = db.record_debt(creditor, "paid", amount)
+
+        if self and other:
+            net = db.my_balance(debtor)
+            bot.reply_to(message, f"Recorded. \n @{debtor} → Balance: {net} RSD")
         else:
             bot.reply_to(message, "Not recorded (error).")
     except Exception:
-        bot.reply_to(message, "Invalid format. Use: /paid <amount> or /share <amount>")
+        bot.reply_to(message, "Invalid format. Use: /paid | /share <amount> @creditor_username")
 
 if __name__ == "__main__":
     app.run(debug=True)
