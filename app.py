@@ -89,7 +89,7 @@ def handle_text(message):
 
         if self and other:
             net = db.my_balance(debtor)
-            bot.reply_to(message, f"Recorded. \n @{debtor} → Balance: {net} RSD")
+            bot.reply_to(message, f"Recorded. \n @{debtor} → Balance: {net} RSD \n @{creditor} → Balance: {net} RSD")
         else:
             bot.reply_to(message, "Not recorded (error).")
     except Exception:
