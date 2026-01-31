@@ -11,7 +11,7 @@ NEXT:
 x bound to telegram first_name, when nickname is not set
 
 NEXT:
-- think about auto-tests (for practice)
+- ~~think~~ create auto-tests
 
 NEXT:
 - consider switching to telegram_user_id instead of username
