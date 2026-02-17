@@ -1,5 +1,6 @@
 import os
 from sqlmodel import SQLModel, create_engine, Session, Field, select
+from datetime import datetime, timezone
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(
@@ -23,8 +24,13 @@ class PoolEntry(SQLModel, table=True):
     kind: str = Field(nullable=False) # "paid" or "share"
     amount_din: int = Field(nullable=False)
 
+    counterparty: str | None = Field(default=None)
+    created_at: datetime | None = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
-def record_debt(username: str, kind: str, amount_din: int) -> bool:
+
+def record_debt(username: str, kind: str, amount_din: int, counterparty: str | None) -> bool:
     try:
         with get_session() as session:
             session.exec(select(1))
@@ -32,6 +38,7 @@ def record_debt(username: str, kind: str, amount_din: int) -> bool:
                 username=username,
                 kind=kind,
                 amount_din=amount_din,
+                counterparty=counterparty,
             )
             session.add(entry)
             session.commit()
@@ -62,3 +69,22 @@ def all_usernames() -> list[str]:
         rows = session.exec(select(PoolEntry.username).distinct()).all()
     return [r for r in rows]
 
+def transactions_with_running_balance(username: str):
+    with get_session() as session:
+        rows = session.exec(
+            select(PoolEntry)
+            .where(PoolEntry.username == username)
+            .order_by(PoolEntry.id)
+        ).all()
+
+    running = 0
+    result = []
+    for r in rows:
+        if r.kind == "paid":
+            running += r.amount_din
+        else:
+            running -= r.amount_din
+
+        result.append((r, running))
+
+    return result

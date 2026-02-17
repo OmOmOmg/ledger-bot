@@ -11,9 +11,15 @@ NEXT:
 x bound to telegram first_name, when nickname is not set
 
 NEXT:
+x add history command
+
+NEXT:
+- command localization
+
+NEXT:
 - ~~think~~ create auto-tests
 
 NEXT:
-- consider switching to telegram_user_id instead of username
-- add scheduled check if overall balance != 0
+- consider switching to telegram_user_id instead of username (?)
+- add scheduled check if overall balance != 0 (?)
 
