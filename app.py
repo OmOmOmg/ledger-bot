@@ -65,68 +65,38 @@ def all_handler(message):
 
 @bot.message_handler(commands=["history"])
 def history_handler(message):
-    # only private chats
     if message.chat.type != "private":
         return
 
     username = message.from_user.username or message.from_user.first_name
 
-    # get all transactions with running balance
     all_rows = db.transactions_with_running_balance(username)
 
     if not all_rows:
         bot.reply_to(message, "No transactions found.")
         return
 
-    last_10 = all_rows[-10:]  # last 10 oldest->newest
+    last_10 = all_rows[-10:]
 
-    # Format a padded table
     lines = []
 
-    # column widths
-    w_date = 10
-    w_user = 12
-    w_amount = 7
-    w_with = 12
-    w_bal = 8
-
-    # optional header
-    header = (
-        "DATE".ljust(w_date) + " | "
-        + "USER".ljust(w_user) + " | "
-        + "AMOUNT".center(w_amount) + " | "
-        + "WITH".ljust(w_with) + " | "
-        + "BAL".rjust(w_bal)
-    )
-    lines.append(header)
-    lines.append("-" * len(header))
-
     for r, balance in last_10:
-        # local date
         if r.created_at:
             local_dt = r.created_at.astimezone(BELGRADE)
             date_str = local_dt.strftime("%d/%m/%y")
         else:
             date_str = "NULL"
 
-        # padded fields
-        date_col = date_str.ljust(w_date)
-        user_col = f"@{r.username}".ljust(w_user)
-
         sign = "+" if r.kind == "paid" else "-"
-        amt_col = f"{sign}{r.amount_din}".rjust(w_amount)
+        counterparty = f"@{r.counterparty}" if r.counterparty else "NULL"
 
-        cp_col = (f"@{r.counterparty}" if r.counterparty else "NULL").ljust(w_with)
-        bal_col = f"{balance}".rjust(w_bal)
+        lines.append(f"@{r.username} {sign}{r.amount_din} {counterparty}")
+        lines.append(f"Date: {date_str}")
+        lines.append(f"Balance: {balance}")
+        lines.append("")  # spacing between entries
 
-        line = (
-            f"{date_col} | {user_col} | {amt_col} | {cp_col} | {bal_col}"
-        )
-        lines.append(line)
-
-    # build final message with monospace code block
-    msg = "/history\n\n```\n" + "\n".join(lines) + "\n```"
-    bot.reply_to(message, msg, parse_mode="Markdown")
+    msg = "\n".join(lines)
+    bot.reply_to(message, msg)
 
 #receive input from user
 @bot.message_handler(content_types=["text"])
