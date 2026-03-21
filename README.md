@@ -14,10 +14,10 @@ NEXT:
 x add history command
 
 NEXT:
-- command localization
+x command localization
 
 NEXT:
-- ~~think~~ create auto-tests
+- ~~think~~ create tests (?)
 
 NEXT:
 - consider switching to telegram_user_id instead of username (?)

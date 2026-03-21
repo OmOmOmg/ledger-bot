@@ -114,12 +114,16 @@ def handle_text(message):
         kind, amount_str, creditor = message.text[1:].split()
 
         debtor = message.from_user.username or message.from_user.first_name   # sender of a message
-        kind = kind.lower()
+        kind_rus = kind.lower()
         creditor = creditor.lstrip("@")
 
-        if kind not in ("paid", "share"):
-            bot.reply_to(message, "Unknown command. Use /paid or /share.")
+        if kind_rus not in ("плачу", "торчу"):
+            bot.reply_to(message, "Unknown command. Use /плачу or /торчу.")
             return
+        if kind_rus == "плачу":
+            kind = "paid"
+        elif kind_rus == "торчу":
+            kind = "share"
 
         amount = int(amount_str)
 
@@ -127,7 +131,7 @@ def handle_text(message):
 
         if kind == "paid":
             other = db.record_debt(creditor, "share", amount, counterparty=debtor)
-        if kind == "share":
+        elif kind == "share":
             other = db.record_debt(creditor, "paid", amount, counterparty=debtor)
 
         if self and other:
@@ -137,7 +141,7 @@ def handle_text(message):
         else:
             bot.reply_to(message, "Not recorded (error).")
     except Exception:
-        bot.reply_to(message, "Invalid format. Use: /paid | /share <amount> @creditor_username")
+        bot.reply_to(message, "Invalid format. Use: /плачу | /торчу <amount> @creditor_username")
 
 if __name__ == "__main__":
     app.run(debug=True)
