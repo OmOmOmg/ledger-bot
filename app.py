@@ -15,9 +15,11 @@ db.init_db()
 bot = telebot.TeleBot(os.getenv("BOT_TOKEN"), threaded=False)
 BELGRADE = ZoneInfo("Europe/Belgrade")
 app = Flask('__name__')
+
+
 # sslify = SSLify(app)
 
-@app.route('/', methods=['POST','GET'])
+@app.route('/', methods=['POST', 'GET'])
 def home():
     if request.method == 'POST':
         if flask.request.headers.get('content-type') == 'application/json':
@@ -30,9 +32,9 @@ def home():
     return 'OK'
 
 
-#curl -F "url=https://nicobelic.pythonanywhere.com/" https://api.telegram.org/bot<token>/setWebhook
+# curl -F "url=https://nicobelic.pythonanywhere.com/" https://api.telegram.org/bot<token>/setWebhook
 
-#process "/start" command
+# process "/start" command
 # @bot.message_handler(commands=['start'])
 # def start(m):
 #     bot.reply_to (m, "Input in format <paid | share> <amount> e.g. paid 1500 \n")
@@ -50,6 +52,7 @@ def me_handler(message):
         f"@{username} → Your balance: {net} RSD"
     )
 
+
 @bot.message_handler(commands=["all"])
 def all_handler(message):
     if message.chat.type != "private":
@@ -62,6 +65,7 @@ def all_handler(message):
 
     reply_text = "<b>📊 Group balance:</b>\n" + "\n".join(lines)
     bot.reply_to(message, reply_text, parse_mode="HTML")
+
 
 @bot.message_handler(commands=["history"])
 def history_handler(message):
@@ -98,7 +102,8 @@ def history_handler(message):
     msg = "\n".join(lines)
     bot.reply_to(message, msg)
 
-#receive input from user
+
+# receive input from user
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     if message.chat.type == "private":
@@ -113,7 +118,7 @@ def handle_text(message):
     try:
         kind, amount_str, creditor = message.text[1:].split()
 
-        debtor = message.from_user.username or message.from_user.first_name   # sender of a message
+        debtor = message.from_user.username or message.from_user.first_name  # sender of a message
         kind_rus = kind.lower()
         creditor = creditor.lstrip("@")
 
@@ -127,21 +132,27 @@ def handle_text(message):
 
         amount = int(amount_str)
 
-        self = db.record_debt(debtor, kind, amount, counterparty=creditor)
+        status = db.record_transfer(
+            debtor=debtor,
+            kind=kind,
+            amount_din=amount,
+            creditor=creditor,
+            message_id=message.message_id,
+        )
 
-        if kind == "paid":
-            other = db.record_debt(creditor, "share", amount, counterparty=debtor)
-        elif kind == "share":
-            other = db.record_debt(creditor, "paid", amount, counterparty=debtor)
-
-        if self and other:
+        if status == "created":
             net_debtor = db.my_balance(debtor)
             net_creditor = db.my_balance(creditor)
-            bot.reply_to(message, f"Recorded. \n @{debtor} → Balance: {net_debtor} RSD \n @{creditor} → Balance: {net_creditor} RSD")
+            bot.reply_to(message,
+                         f"Recorded. \n @{debtor} → Balance: {net_debtor} RSD \n @{creditor} → Balance: {net_creditor} RSD")
+        elif status == "duplicate":
+            return
         else:
             bot.reply_to(message, "Not recorded (error).")
+
     except Exception:
         bot.reply_to(message, "Invalid format. Use: /плачу | /торчу <amount> @creditor_username")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

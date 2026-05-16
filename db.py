@@ -6,48 +6,96 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(
     DATABASE_URL,
     echo=True,
-    pool_pre_ping=True          # verify & reconnect before use
+    pool_pre_ping=True  # verify & reconnect before use
 )
 
 
 def init_db():
     SQLModel.metadata.create_all(engine)
 
+
 def get_session():
     return Session(engine)
 
-#DB Model
+
+# DB Model
 class PoolEntry(SQLModel, table=True):
     __tablename__ = "pool_entry"
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(nullable=False)
-    kind: str = Field(nullable=False) # "paid" or "share"
+    kind: str = Field(nullable=False)  # "paid" or "share"
     amount_din: int = Field(nullable=False)
-
+    telegram_message_id: int | None = Field(default=None, index=True)
     counterparty: str | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
 
-def record_debt(username: str, kind: str, amount_din: int, counterparty: str | None) -> bool:
+# def record_debt(username: str, kind: str, amount_din: int, counterparty: str | None) -> bool:
+#     try:
+#         with get_session() as session:
+#             session.exec(select(1))
+#             entry = PoolEntry(
+#                 username=username,
+#                 kind=kind,
+#                 amount_din=amount_din,
+#                 counterparty=counterparty,
+#             )
+#             session.add(entry)
+#             session.commit()
+#
+#         return True
+#
+#     except Exception as e:
+#         print("DB ERROR:", e)
+#         return False
+
+
+def record_transfer(
+        debtor: str,
+        kind: str,
+        amount_din: int,
+        creditor: str,
+        message_id: int,
+) -> str:
     try:
         with get_session() as session:
-            session.exec(select(1))
-            entry = PoolEntry(
-                username=username,
+
+            existing = session.exec(
+                select(PoolEntry).where(
+                    PoolEntry.telegram_message_id == message_id
+                )
+            ).first()
+
+            if existing:
+                print(f"Duplicate Telegram message ignored: {message_id}")
+                return "duplicate"
+
+            opposite_kind = "share" if kind == "paid" else "paid"
+
+            session.add(PoolEntry(
+                username=debtor,
                 kind=kind,
                 amount_din=amount_din,
-                counterparty=counterparty,
-            )
-            session.add(entry)
-            session.commit()
+                counterparty=creditor,
+                telegram_message_id=message_id,
+            ))
 
-        return True
+            session.add(PoolEntry(
+                username=creditor,
+                kind=opposite_kind,
+                amount_din=amount_din,
+                counterparty=debtor,
+                telegram_message_id=message_id,
+            ))
+
+            session.commit()
+            return "created"
 
     except Exception as e:
         print("DB ERROR:", e)
-        return False
+        return "error"
 
 
 def my_balance(username: str):
@@ -64,10 +112,12 @@ def my_balance(username: str):
             net -= e.amount_din
     return net
 
+
 def all_usernames() -> list[str]:
     with get_session() as session:
         rows = session.exec(select(PoolEntry.username).distinct()).all()
     return [r for r in rows]
+
 
 def transactions_with_running_balance(username: str):
     with get_session() as session:
